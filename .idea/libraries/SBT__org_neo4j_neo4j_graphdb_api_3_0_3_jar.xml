@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="SBT: org.neo4j:neo4j-graphdb-api:3.0.3:jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.ivy2/cache/org.neo4j/neo4j-graphdb-api/jars/neo4j-graphdb-api-3.0.3.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.ivy2/cache/org.neo4j/neo4j-graphdb-api/docs/neo4j-graphdb-api-3.0.3-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.ivy2/cache/org.neo4j/neo4j-graphdb-api/srcs/neo4j-graphdb-api-3.0.3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

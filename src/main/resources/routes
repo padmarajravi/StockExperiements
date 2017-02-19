@@ -1,0 +1,4 @@
+GET /Stocks   com.lxmt.stocks.controller.Application.index()
+GET /assets/*file   controllers.Assets.at(path="/public/", file)
+
+

@@ -1,24 +1,21 @@
+import sbtassembly.AssemblyPlugin
+
 name := "StockExperiements"
 
 version := "1.0"
 
 scalaVersion := "2.11.8"
 
-cancelable in Global := true
-
 val sparkVersion = "2.0.0"
 
 libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-core" % sparkVersion,
-  "org.apache.spark" %% "spark-sql" % sparkVersion,
-  "org.apache.spark" %% "spark-mllib" % sparkVersion,
-  "org.apache.spark" %% "spark-streaming" % sparkVersion,
-  "org.apache.spark" %% "spark-hive" % sparkVersion,
-  "com.michaelpollmeier" %% "gremlin-scala" % "3.2.3.1" % "provided",
-  "org.apache.tinkerpop" % "neo4j-gremlin" % "3.2.3" exclude("com.github.jeremyh", "jBCrypt"),
-  "org.neo4j" % "neo4j-tinkerpop-api-impl" % "0.4-3.0.3" % "provided",
-  "joda-time" % "joda-time" % "2.9.7" % "provided"
- )
+  "com.michaelpollmeier" %% "gremlin-scala" % "3.2.4.0",
+  "org.apache.tinkerpop" % "neo4j-gremlin" % "3.2.3" exclude("com.github.jeremyh", "jBCrypt"), // travis can't find jBCrypt...
+  "org.neo4j" % "neo4j-tinkerpop-api-impl" % "0.4-3.0.3",
+  "org.scalatest" %% "scalatest" % "3.0.0" % "test",
+  "joda-time" % "joda-time" % "2.9.7",
+  "commons-io" % "commons-io" % "2.4"
+)
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
@@ -26,9 +23,19 @@ disablePlugins(PlayLayoutPlugin)
 
 routesGenerator := InjectedRoutesGenerator
 
-skip in update := true
+//skip in update := true
 
+AssemblyPlugin.assemblySettings
 
+mainClass in assembly := Some("play.core.server.ProdServerStart")
+
+fullClasspath in assembly += Attributed.blank(PlayKeys.playPackageAssets.value)
+
+unmanagedJars in Compile += ( baseDirectory.value / "target/scala-2.11/classes" )
+
+PlayKeys.playMonitoredFiles ++= (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value
+
+/*
 assemblyMergeStrategy in assembly := {
   case PathList("org","aopalliance", xs @ _*) => MergeStrategy.last
   case PathList("javax", "inject", xs @ _*) => MergeStrategy.last
@@ -39,7 +46,6 @@ assemblyMergeStrategy in assembly := {
   case PathList("com", "esotericsoftware", xs @ _*) => MergeStrategy.last
   case PathList("com", "codahale", xs @ _*) => MergeStrategy.last
   case PathList("com", "yammer", xs @ _*) => MergeStrategy.last
-  case PathList("org", "neo4j", xs @ _*) => MergeStrategy.last
   case PathList("org", "slf4j", xs @ _*) => MergeStrategy.first
   case PathList("org", "objectweb", xs @ _*) => MergeStrategy.last
   case PathList("javax", "transaction", xs @ _*) => MergeStrategy.last
@@ -62,3 +68,5 @@ assemblyMergeStrategy in assembly := {
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)
 }
+
+*/

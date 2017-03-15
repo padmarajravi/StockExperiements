@@ -1,12 +1,18 @@
-<!doctype html>
+@(list:List[String])
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Stocks</title>
+<meta charset="UTF-8">
+<title>Stocks</title>
 </head>
 <body>
 <hl>Stocks</hl>
-<div><script type="text/javascript" src='@routes.Assets.at("js/d3.js")'></script>
+<div id="stockList">
+@list.map{ x=>
+    <ul><li>@x</li></ul>
+    }
+</div>
+
+<div name="dummyGraph"><script type="text/javascript" src='@routes.Assets.at("js/d3.js")'></script>
 <script>
 var margin = {top: 20, right: 20, bottom: 30, left: 50},
     width = 960 - margin.left - margin.right,

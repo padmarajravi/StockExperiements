@@ -1,14 +1,11 @@
 package com.lxmt.stocks.downloader
 
-import java.io.File
-
-import gremlin.scala._
-import org.apache.commons.io.FileUtils
-import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph
+import com.lxmt.stocks.database.DataBaseServiceFactory
+import com.lxmt.stocks.database.DataBaseServiceFactory.DataBaseType
+import com.lxmt.stocks.database.DataBaseServiceFactory._
 import org.joda.time.DateTime
-
 import scala.io.Source
-import scala.util.Try
+
 
 
 
@@ -17,42 +14,19 @@ import scala.util.Try
  */
 object Downloader {
 
-  def ensureDataStorage() {
-    val graphPath="graphdata/";
-    FileUtils.deleteDirectory(new File(graphPath))
-    val lines              = Source.fromFile("resources/stocks.csv","utf-8").getLines
-    val graph:Neo4jGraph   = Neo4jGraph.open("graphdata/")
-    val name               = Key[String]("name")
-    val close              = Key[Double]("close")
-    val open               = Key[Double]("close")
-    val high               = Key[Double]("close")
-    val low                = Key[Double]("close")
-    val date               = Key[String]("date")
+  def ensureDataStorage():List[String] = {
+    val graphPath="target/graphdata";
+    val lines              = Source.fromFile("/Users/ravi/StockExperiements/src/main/resources/stocks.csv","utf-8").getLines()
     val dateFormat         = "yyyy-MM-dd"
     val currentDate        = new DateTime()
     val currDateStr        = currentDate.toString(dateFormat)
+    val databaseService    = DataBaseServiceFactory.getDataBase(DataBaseType.Neo4j)
 
+    databaseService.initiate()
 
-    def addStock(stock:String) = {
-      if(!graph.V.has(name,stock).exists) graph + ("stock",name -> stock)
-      println("Added "+stock)
-    }
+    val transaction=lines.map(f => databaseService.createEntity(Map("name"-> f)))
 
-    def addStockPrice(stockName:String,downloadLine:String): Neo4jGraph =
-    {
-      val downloadLineValues=downloadLine.split(",")
-      val price = graph +("price",
-        date  -> downloadLineValues(0).toString,
-        open  -> downloadLineValues(1).toString.toDouble,
-        high  -> downloadLineValues(2).toString.toDouble,
-        low   -> downloadLineValues(3).toString.toDouble,
-        close -> downloadLineValues(4).toString.toDouble
-        )
-      val stockNode=graph.V.has(name,stockName).head()
-      stockNode --- s"hasPrice${downloadLineValues(0).toString}" --> price
-      println("Created:"+stockName+s"--hasPrice${downloadLineValues(0).toString}-->"+downloadLineValues(4).toString)
-      graph
-    }
+   // println(transaction.toList)
 
     def getStockPrice(stock:String):List[String] ={
       val endDate = currentDate.toString(dateFormat)
@@ -63,20 +37,13 @@ object Downloader {
       Source.fromURL(url).getLines().toList.tail
     }
 
-
-    val x =for{
-      stockName     <- lines
-      node          =  addStock(stockName)
-      dataList      <- Try(getStockPrice(stockName)).toOption.getOrElse(List())
-      graph         =  addStockPrice(stockName,dataList)
-    } yield stockName
-
-    x.foreach(println(_))
-    println(graph.V.has(name,"ABB").exists())
-    println("Done")
-    graph.close()
+    val result=databaseService.getEntity("name","ABB")
+    println(result.size)
+    result.map( f => f.entityId)
   }
 
+  def main(args: Array[String]) {
 
+  }
 
 }

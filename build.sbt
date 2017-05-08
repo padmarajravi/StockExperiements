@@ -12,6 +12,8 @@ libraryDependencies ++= Seq(
   "com.michaelpollmeier" %% "gremlin-scala" % "3.2.4.0",
   "org.apache.tinkerpop" % "neo4j-gremlin" % "3.2.3" exclude("com.github.jeremyh", "jBCrypt"), // travis can't find jBCrypt...
   "org.neo4j" % "neo4j-tinkerpop-api-impl" % "0.4-3.0.3",
+  "org.neo4j" % "neo4j" % "3.0.3",
+  "org.neo4j.app" % "neo4j-server" % "3.0.3",
   "org.scalatest" %% "scalatest" % "3.0.0" % "test",
   "joda-time" % "joda-time" % "2.9.7",
   "commons-io" % "commons-io" % "2.4"

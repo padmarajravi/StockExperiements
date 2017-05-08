@@ -7,10 +7,11 @@ import com.lxmt.stocks.downloader.Downloader.DownloadedData
 import com.lxmt.stocks.Util._
 import org.apache.commons.io.FileUtils
 import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph
+import org.apache.tinkerpop.gremlin.process.traversal.Path
 import gremlin.scala._
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
-
+import collection.JavaConversions._
 
 
 /**
@@ -18,10 +19,13 @@ import org.joda.time.format.DateTimeFormat
  */
 object Neo4jDatabaseService extends DataBaseService {
 
-  val dbPath="target/stocks"
+  val dbPath="/Users/ravi/StockData"
   var graph:ScalaGraph=null
   val priceRelation = "hasPriceOn"
   val nameKey = Key[String]("name")
+  val typeKey =Key[String]("type")
+  val dateKey = Key[String]("date")
+  val relType = Key[String]("relname")
 
 
   override def clearDataBase(): Boolean = {
@@ -29,37 +33,37 @@ object Neo4jDatabaseService extends DataBaseService {
     true
   }
 
-  override def createCompanyEntity(name:String,propMap: Map[String, Any]): Company = {
+  override def createCompanyEntity(name:String,propMap: Map[String, String]): Company = {
     propMap+"name"-> name
     val existingNodes=getGraphDb().V.has(nameKey,name).toList()
     if(existingNodes.size>0)
     Company(existingNodes.head.id().toString,name)
     else
-    Company(getGraphDb().addVertex(propMap).id().toString,name)
+    Company(getGraphDb().addVertex("company",propMap).id().toString,name)
   }
 
   override def createPriceEntity(entity1: Company,priceData: DownloadedData): Boolean = {
     val relLabel=priceRelation+"_"+priceData.date.toString("yyyy-MM-dd")
-    val existinNode=getGraphDb().V(entity1.entityId).toList().head
-    if(existinNode.outE(relLabel).toList().size==0)
-      {
-        val priceNode=getGraphDb().addVertex(Map("type" -> "price","company"-> priceData.company,"close" -> priceData.close,"date" -> priceData.date.toString(DATE_FORMAT)))
-        existinNode --- priceRelation+"_"+priceData.date.toString("yyyy-MM-dd") --> priceNode
-        true
-      }
-    else
+    val existingNode=getGraphDb().V().has(nameKey,entity1.name).toList().head
+    if(existingNode.outE(relLabel).exists())
       {
         false
       }
+    else
+      {
+        val priceNode=getGraphDb().addVertex("price",Map("type" -> "price","company"-> priceData.company,"close" -> priceData.close,"date" -> priceData.date.toString(DATE_FORMAT)))
+        existingNode --- (relLabel,relType -> relLabel) --> priceNode
+        true
+      }
   }
 
-  override def isDbPresent(): Boolean = FileUtils.directoryContains(new File("target"),new File("stocks"))
+  override def isDbPresent(): Boolean = FileUtils.directoryContains(new File(dbPath),new File("neostore"))
 
 
   override def initiate(): Unit = {
     if(graph==null)
       {
-        FileUtils.deleteDirectory(new File(dbPath))
+        FileUtils.cleanDirectory(new File(dbPath))
         graph = Neo4jGraph.open(dbPath).asScala
       }
   }
@@ -73,6 +77,7 @@ object Neo4jDatabaseService extends DataBaseService {
 
 
   override def shutDown(): Unit = {
+    println("Shutting down")
     getGraphDb().close()
   }
 
@@ -86,15 +91,15 @@ object Neo4jDatabaseService extends DataBaseService {
 
     }
 
-  override def getLatestPriceForCompany(companyName:String):PriceData = {
-    val key = Key[String]("name")
-    val priceEdges = getGraphDb().V.has(key,companyName).outE().filter{ p =>
-     p.label().startsWith(priceRelation)
-    }
-    val maxValue = priceEdges.inV().value[String]("date").toList().max
-    val propertiesList = priceEdges.filter(_.label().equals(maxValue)).inV().propertyMap("company","close","date").toList()
-    val result = propertiesList.map(x => new PriceData(x.get("company").toString,x.get("company").toString,DateTime.parse(x.get("date").toString),x.get("price").toString.toDouble,0.0,0.0,0.0))
-    result.head
+  override def getLatestPriceForCompany(companyNames:String*):List[PriceData] = {
+    companyNames.map { companyName =>
+      val key = Key[String]("name")
+      val priceEdges = getGraphDb().V.has(key, companyName).outE().filter { p =>
+        p.label().startsWith(priceRelation)
+      }
+      val maxVertex = priceEdges.inV().toList().maxBy(_.value[String]("date"))
+      new PriceData(maxVertex.id().toString, maxVertex.value[String]("company"), maxVertex.value[String]("date").toDateTime, 0.0, 0.0, 0.0, maxVertex.value[Double]("close"))
+    }.toList
   }
 
   override def getLastNDayPrices(companyName: String,numberOfIntervals:Int): List[PriceData] = {
@@ -106,4 +111,12 @@ object Neo4jDatabaseService extends DataBaseService {
     }.toList()
     resultList.sortWith( (p,q) => p.dateTime.isBefore(q.dateTime))
   }
+
+  override def getLastSyncDate() = {
+    val priceVertexList = getGraphDb().V().has(typeKey,"price")
+    val lastDate = if(priceVertexList.exists())priceVertexList.toList().map(v => v.value[String]("date")).max else "0000-00-00"
+    println(lastDate)
+    lastDate
+  }
+
 }

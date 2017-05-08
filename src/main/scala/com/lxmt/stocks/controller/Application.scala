@@ -6,7 +6,7 @@ import play.api.mvc._
 class Application extends Controller {
 
   def index = Action {
-    val x= Downloader.ensureDataStorage()
+    val x = Downloader.ensureDataStorage()
     Ok(views.html.index(x))
   }
 }

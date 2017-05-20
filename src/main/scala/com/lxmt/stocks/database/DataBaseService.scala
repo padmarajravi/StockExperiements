@@ -7,8 +7,6 @@ import org.joda.time.DateTime
  * Created by ravi on 14/03/2017.
  */
 trait DataBaseService {
-
-  def isDbPresent():Boolean
   def clearDataBase():Boolean
   def createCompanyEntity(name:String,propMap:Map[String,String]):Company
   def createPriceEntity(companyEntity:Company,downloadedData: DownloadedData):Boolean
@@ -16,7 +14,6 @@ trait DataBaseService {
   def getLatestPriceForCompany(companyName:String*):List[PriceData]
   def getLastNDayPrices(companyName:String,numberOfIntervals:Int):List[PriceData]
   def getLastSyncDate():String
-  def initiate()
   def shutDown()
 }
 

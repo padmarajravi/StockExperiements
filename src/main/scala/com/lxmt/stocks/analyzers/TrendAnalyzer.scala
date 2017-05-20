@@ -6,8 +6,8 @@ import com.lxmt.stocks.Util._
 /**
  * Created by ravi on 23/03/2017.
  */
-class TrendAnalyzer(databaseService:DataBaseService) extends Analyzer{
-  override def analyze(company: String,priceList:List[PriceData]): Map[String, Any] = {
+object TrendAnalyzer extends Analyzer{
+  override  def analyze(priceList:List[PriceData]): AnalysisResult = {
 
     val prices  = priceList.takeRight(TREND_ANAYZER_INTERVAL)
     val yValues = prices.map(_.close)
@@ -17,8 +17,13 @@ class TrendAnalyzer(databaseService:DataBaseService) extends Analyzer{
     val num     = yValues.zip(xValues).foldLeft(0.0)(
                    (res,zipped:(Double,Double)) => res + (zipped._1-yAvg)*(zipped._2-xAvg))
     val den     =  xValues.foldLeft(0.0)((acc,xi) => (xi-xAvg)+acc)
-    Map("SLOPE" -> num/den)
+    new AnalysisResult(num/den < 0.5 ,Map("SLOPE" -> (num/den).toString()))
   }
+
+  override def name() = "TREND_ANALYZER"
+
+
+
 
 }
 

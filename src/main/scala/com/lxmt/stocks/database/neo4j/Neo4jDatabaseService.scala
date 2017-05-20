@@ -30,6 +30,7 @@ object Neo4jDatabaseService extends DataBaseService {
 
   override def clearDataBase(): Boolean = {
     FileUtils.deleteDirectory(new File(dbPath))
+    graph=null
     true
   }
 
@@ -57,28 +58,20 @@ object Neo4jDatabaseService extends DataBaseService {
       }
   }
 
-  override def isDbPresent(): Boolean = FileUtils.directoryContains(new File(dbPath),new File("neostore"))
-
-
-  override def initiate(): Unit = {
-    if(graph==null)
-      {
-        FileUtils.cleanDirectory(new File(dbPath))
-        graph = Neo4jGraph.open(dbPath).asScala
-      }
-  }
 
   def getGraphDb() = {
     if (graph==null) {
-      initiate()
+      graph = Neo4jGraph.open(dbPath).asScala
+
     }
-    graph
+
   }
 
 
   override def shutDown(): Unit = {
     println("Shutting down")
-    getGraphDb().close()
+    graph.close()
+    graph=null
   }
 
   override def getCompanies(propName: String, propValue: Object): List[Company] =
@@ -113,10 +106,7 @@ object Neo4jDatabaseService extends DataBaseService {
   }
 
   override def getLastSyncDate() = {
-    val priceVertexList = getGraphDb().V().has(typeKey,"price")
-    val lastDate = if(priceVertexList.exists())priceVertexList.toList().map(v => v.value[String]("date")).max else "0000-00-00"
-    println(lastDate)
-    lastDate
+    val vertexList=getGraphDb().V().has(typeKey,"price").toList().map(v => v.value[String]("date"))
+    if(!vertexList.isEmpty) vertexList.max else "0000-00-00"
   }
-
 }

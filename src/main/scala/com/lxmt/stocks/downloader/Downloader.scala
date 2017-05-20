@@ -1,7 +1,7 @@
 package com.lxmt.stocks.downloader
 
 
-import com.lxmt.stocks.database.DataBaseServiceFactory
+import com.lxmt.stocks.database.{DataBaseService, DataBaseServiceFactory}
 import com.lxmt.stocks.database.DataBaseServiceFactory.DataBaseType
 import com.lxmt.stocks.Util._
 import org.joda.time.DateTime
@@ -16,7 +16,7 @@ import scala.util.Try
  */
 object Downloader {
 
-  val lines = Source.fromFile("/Users/ravi/StockExperiements/src/main/resources/stocks_small", "utf-8").getLines()
+
   val dateFormat = "yyyy-MM-dd"
   val nameLabel = "name"
   val priceLabel = "close"
@@ -37,23 +37,21 @@ object Downloader {
     }).toOption
   }
 
-  def ensureDataStorage():List[String] = {
-    val databaseService = DataBaseServiceFactory.getDataBase(DataBaseType.Neo4j)
-    try {
+  def ensureDataStorage(databaseService:DataBaseService,stockList:Iterator[String] ):List[String] = {
 
-      databaseService.initiate()
+    try {
       val downloadStartDate = databaseService.getLastSyncDate().toDownloadStartDateStr
+      println("Last Sync Date:"+downloadStartDate)
       val x = for {
-        stock <- lines
+        stock       <- stockList
         stockEntity = databaseService.createCompanyEntity(stock, Map(nameLabel -> stock))
-        stockData <- getStockPrice(stock, downloadStartDate,currentDateString).getOrElse(List())
+        stockData   <- getStockPrice(stock, downloadStartDate,currentDateString).getOrElse(List())
         priceEntity = databaseService.createPriceEntity(stockEntity, stockData)
       } yield priceEntity
 
       println("Inserted " + x.size + " relations")
 
       val result = databaseService.getLatestPriceForCompany("ABB","8KMILES")
-      databaseService.shutDown()
       result.map(_.toString)
     }
     catch {

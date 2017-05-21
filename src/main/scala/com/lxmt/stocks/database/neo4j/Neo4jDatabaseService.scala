@@ -11,15 +11,15 @@ import org.apache.tinkerpop.gremlin.process.traversal.Path
 import gremlin.scala._
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import shapeless.HNil
 import collection.JavaConversions._
 
 
 /**
  * Created by ravi on 14/03/2017.
  */
-object Neo4jDatabaseService extends DataBaseService {
+class Neo4jDatabaseService(dbPath:String) extends DataBaseService {
 
-  val dbPath="/Users/ravi/StockData"
   var graph:ScalaGraph=null
   val priceRelation = "hasPriceOn"
   val nameKey = Key[String]("name")
@@ -29,6 +29,7 @@ object Neo4jDatabaseService extends DataBaseService {
 
 
   override def clearDataBase(): Boolean = {
+    shutDown()
     FileUtils.deleteDirectory(new File(dbPath))
     graph=null
     true
@@ -60,17 +61,18 @@ object Neo4jDatabaseService extends DataBaseService {
 
 
   def getGraphDb() = {
-    if (graph==null) {
+    if (graph == null) {
       graph = Neo4jGraph.open(dbPath).asScala
-
+      graph.tx().open()
     }
-
+    graph
   }
 
 
   override def shutDown(): Unit = {
-    println("Shutting down")
-    graph.close()
+    getGraphDb().tx.commit()
+    getGraphDb().tx.close()
+    getGraphDb().close()
     graph=null
   }
 
@@ -97,11 +99,13 @@ object Neo4jDatabaseService extends DataBaseService {
 
   override def getLastNDayPrices(companyName: String,numberOfIntervals:Int): List[PriceData] = {
     val relations         = getGraphDb().V().has(nameKey,companyName).outE().filter(_.label().startsWith(priceRelation))
+    val relCopy           = relations.copy[Edge,HNil]()
     val relationStrings   = relations.label().toList().sortWith(_ > _)
     val lastNDayrelations = relationStrings.take(numberOfIntervals)
-    val resultList = relations.filter(p => lastNDayrelations.contains(p.label())).outV().map{ v =>
-      new PriceData(v.id().toString,v.property[String]("name").value(),DateTime.parse(v.property[String]("date").value()),v.property[Double]("price").value(),0.0,0.0,0.0)
+    val resultList = getGraphDb().V().has(nameKey,companyName).outE().filter(p => lastNDayrelations.contains(p.label())).inV().map{ v =>
+      new PriceData(v.id().toString,v.property[String]("company").value(),DateTime.parse(v.property[String]("date").value()),0.0,0.0,0.0,v.property[Double]("close").value())
     }.toList()
+
     resultList.sortWith( (p,q) => p.dateTime.isBefore(q.dateTime))
   }
 

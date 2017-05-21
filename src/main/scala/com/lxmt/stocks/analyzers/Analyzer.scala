@@ -10,7 +10,9 @@ trait Analyzer {
   def name():String
 }
 
-case class AnalysisResult(result: Boolean,map:Map[String,String])
+case class AnalysisResult(result: Boolean,props:Map[String,String])
+
+
 
 
 

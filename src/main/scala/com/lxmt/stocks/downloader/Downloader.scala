@@ -37,14 +37,14 @@ object Downloader {
     }).toOption
   }
 
-  def ensureDataStorage(databaseService:DataBaseService,stockList:Iterator[String] ):List[String] = {
+  def ensureDataStorage(databaseService:DataBaseService,stockList:List[String] ):List[String] = {
 
     try {
       val downloadStartDate = databaseService.getLastSyncDate().toDownloadStartDateStr
       println("Last Sync Date:"+downloadStartDate)
       val x = for {
         stock       <- stockList
-        stockEntity = databaseService.createCompanyEntity(stock, Map(nameLabel -> stock))
+        stockEntity = databaseService.createCompanyEntity(stock, Map(nameLabel -> stock)) if (currentDateString > downloadStartDate)
         stockData   <- getStockPrice(stock, downloadStartDate,currentDateString).getOrElse(List())
         priceEntity = databaseService.createPriceEntity(stockEntity, stockData)
       } yield priceEntity

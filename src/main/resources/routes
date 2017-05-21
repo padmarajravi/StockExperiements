@@ -1,4 +1,5 @@
-GET /Stocks   com.lxmt.stocks.controller.Application.index()
+GET /stocks   com.lxmt.stocks.controller.Application.index()
+GET /stocks/plot/:symbol   com.lxmt.stocks.controller.Application.plot(symbol:String)
 GET /assets/*file   controllers.Assets.at(path="/public/", file)
 
 

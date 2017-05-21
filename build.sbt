@@ -16,7 +16,8 @@ libraryDependencies ++= Seq(
   "org.neo4j.app" % "neo4j-server" % "3.0.3",
   "org.scalatest" %% "scalatest" % "3.0.0" % "test",
   "joda-time" % "joda-time" % "2.9.7",
-  "commons-io" % "commons-io" % "2.4"
+  "commons-io" % "commons-io" % "2.4",
+  "com.github.fommil" %% "spray-json-shapeless" % "1.3.0"
 )
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)

@@ -2,6 +2,7 @@ package com.lxmt.stocks.database
 
 import com.lxmt.stocks.downloader.Downloader.DownloadedData
 import org.joda.time.DateTime
+import play.api.libs.json.Json
 
 /**
  * Created by ravi on 14/03/2017.
@@ -18,6 +19,11 @@ trait DataBaseService {
 }
 
 case class Company(id:String,name:String)
-case class PriceData(id:String,company:String,dateTime: DateTime,open:Double,high:Double,low:Double,close:Double)
+case class PriceData(id:String,company:String,dateTime: DateTime,open:Double,high:Double,low:Double,close:Double) {
+  implicit val jsonFormat = Json.format[PriceData]
+  def toJson()={
+    s"""{"no":${id},"company":\"${company}\","date":\"${dateTime.toString("yyyy-MM-dd")}\","close":${close}}"""
+  }
+}
 
 

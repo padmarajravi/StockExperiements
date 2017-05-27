@@ -25,8 +25,9 @@ class TrendAnalyzerSpec extends FlatSpec with Matchers{
     ,13
     ,16
     ,15).map(new PriceData("1","X",new DateTime(),0.0,0.0,0.0,_))
-    TrendAnalyzer.analyze(priceList).result should be (true)
 
-  }
+    TrendAnalyzer
+      .positiveCondition(priceList.foldLeft[AnalysisResult](new AnalysisResult(Map()))((a,b) => TrendAnalyzer.analyze(b,a))) should be (true)
+}
 
 }

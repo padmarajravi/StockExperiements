@@ -15,3 +15,5 @@ TrendAnalyzer
 Get the price of the last n days
 Find the slope
 If slope greater than slopeThreshold give out a buy
+
+THis method will not scale .

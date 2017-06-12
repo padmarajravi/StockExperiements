@@ -113,4 +113,7 @@ class Neo4jDatabaseService(dbPath:String) extends DataBaseService {
     val vertexList=getGraphDb().V().has(typeKey,"price").toList().map(v => v.value[String]("date"))
     if(!vertexList.isEmpty) vertexList.max else "0000-00-00"
   }
+
+
+
 }

@@ -1,20 +1,21 @@
 package com.lxmt.stocks.analyzers
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 /**
  * Created by ravi on 24/05/2017.
  */
 class CircularBuffer[T](size:Int) {
-  val storage = mutable.MutableList[T]()
+  val storage = ListBuffer[T]()
   def add(t:T) = {
     if(storage.size==size) {
-      storage.drop(0)
+      storage.remove(0)
     }
     storage+=t
   }
 
-  def get(index:Int) = storage.get(index)
+  def get(index:Int) = storage(index)
   def getAll()=storage.toList
   def getSize() = storage.size
 }

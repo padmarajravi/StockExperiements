@@ -12,19 +12,19 @@ import scala.io.Source
 class Application extends Controller {
 
   def index = Action {
-    val lines = Source.fromFile("/Users/ravi/StockExperiements/src/main/resources/stocks_small", "utf-8").getLines().toList
-    val analysisRegistry = AnalysisRegistry(TrendAnalyzer)
+    val lines = Source.fromFile("/Users/ravi/StockExperiements/src/main/resources/stocks.csv", "utf-8").getLines().toList
+    AnalysisRegistry.registerAnalyzers(new TrendAnalyzer())
     val databaseService = DataBaseServiceFactory.getDataBase(DataBaseType.Neo4j)
     Downloader.ensureDataStorage(databaseService,lines)
     val stockAndAnalysisResults = for{
-      stockName      <- lines
-      priceList      = databaseService.getLastNDayPrices(stockName,14)
-      analysisResult = priceList.foldLeft[AnalysisResult](new AnalysisResult(Map()))((a,b)=> analysisRegistry.computeAnalysisResults(b,a) )
+      stockName        <- lines
+      priceList        = databaseService.getLastNDayPrices(stockName,14)
+      analysisRegistry = AnalysisRegistry.getAnalysisContextFor(stockName)
+      analysisResult   = priceList.foldLeft[AnalysisResult](new AnalysisResult(Map()))((a,b)=> analysisRegistry.computeAnalysisResults(b,a) )
     } yield (stockName,analysisResult)
 
     println("Results:"+stockAndAnalysisResults)
-    val positiveResults = stockAndAnalysisResults.toMap
-                          .mapValues(p => (p,analysisRegistry.getAllAnalyzers().filter(_.positiveCondition(p))))
+    val positiveResults = stockAndAnalysisResults.toMap.mapValues(p => (p,AnalysisRegistry.getAllAnalyzers().filter(_.positiveCondition(p))))
                           .filter(!_._2._2.isEmpty).toList
 
 

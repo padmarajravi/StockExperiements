@@ -15,18 +15,23 @@ trait Analyzer {
   def positiveCondition: AnalysisResult => Boolean
 }
 
-class AnalysisRegistry(regList:List[Analyzer]) {
+class AnalysisRegistry(stockName:String,regIList:List[Analyzer]) {
 
 def computeAnalysisResults(priceData:PriceData,analysisResult: AnalysisResult):AnalysisResult = {
-    regList.map(_.analyze(priceData,analysisResult)).reduce((a,b)=> AnalysisResult(a.props++b.props))
+  regIList.map(_.analyze(priceData,analysisResult)).reduce((a,b)=> AnalysisResult(a.props++b.props))
   }
 
-def getAllAnalyzers()=regList
+
 
 }
 
 object AnalysisRegistry{
-  def apply(analyzers: Analyzer*)=new AnalysisRegistry(analyzers.toList)
+  var regList = new ListBuffer[Analyzer]
+  def registerAnalyzers(analyzer: Analyzer*) = {
+    regList++=analyzer.toList
+ }
+  def getAnalysisContextFor(stockName:String) = new AnalysisRegistry(stockName,regList.map(_.getClass.newInstance()).toList)
+  def getAllAnalyzers()=regList.toList
 }
 
 case class AnalysisResult(props:Map[String,String])

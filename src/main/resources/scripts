@@ -1,0 +1,27 @@
+CREATE USER 'stocks'@'localhost' IDENTIFIED BY 'password';
+CREATE DATABASE 'stocks_db'
+GRANT ALL PRIVILEGES ON stocks_db.* TO 'stocks'@'localhost'
+
+
+CREATE TABLE COMPANIES
+(
+company_id INT NOT NULL,
+company_symbol VARCHAR(10),
+company_name VARCHAR(30),
+PRIMARY KEY(company_id)
+)
+
+
+CREATE TABLE STOCKS
+(
+id INT NOT NULL,
+company_id INT NOT NULL,
+date DATE,
+open DOUBLE,
+high DOUBLE,
+low DOUBLE,
+close DOUBLE,
+
+PRIMARY KEY(id),
+FOREIGN KEY(company_id) REFERENCES COMPANIES(company_id)
+)

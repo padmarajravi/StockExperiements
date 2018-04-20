@@ -10,6 +10,8 @@ import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 object Util {
 
   val DATE_FORMAT                            = "yyyy-MM-dd"
+  val NAME_LABEL                             = "name"
+  val PRICE_LABEL                            = "close"
   val TREND_ANAYZER_INTERVAL                 = 14
   val DATA_STORAGE_WINDOW                    = 14
   val currentDateString                      = new DateTime().toString(DATE_FORMAT)

@@ -16,12 +16,8 @@ import scala.util.Try
  */
 object Downloader {
 
-
-  val dateFormat = "yyyy-MM-dd"
-  val nameLabel = "name"
-  val priceLabel = "close"
   val priceRelationLabel = "hasPrice"
-  val dataStorageWindow = 15
+  val dataStorageWindow  =  15
 
 
   case class DownloadedData(company:String,date:DateTime,open:Double,high:Double,low:Double,close:Double)
